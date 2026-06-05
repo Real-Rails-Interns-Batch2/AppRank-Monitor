@@ -38,9 +38,12 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Render-ൽ സെറ്റ് ചെയ്ത API URL ഉപയോഗിക്കുന്നു
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+        
         const [rankRes, catRes] = await Promise.all([
-          fetch(`/api/rankings`),
-          fetch(`/api/categories`)
+          fetch(`${API_BASE}/api/rankings`),
+          fetch(`${API_BASE}/api/categories`)
         ]);
         
         if (!rankRes.ok) throw new Error('API Sync Failed');
@@ -91,6 +94,8 @@ export default function Dashboard() {
 
       {loading ? (
         <div className="h-64 flex items-center justify-center">Loading...</div>
+      ) : error ? (
+        <div className="h-64 flex items-center justify-center text-red-400">Error connecting to API. Check your Environment Variables.</div>
       ) : (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <table className="w-full text-left">
