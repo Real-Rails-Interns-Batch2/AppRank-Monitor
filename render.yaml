@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: attention-metrics-api
+    name: app-rank-monitor-api  # ഇവിടെ പേര് മാറ്റുക
     runtime: python
     plan: free
     rootDir: backend
@@ -9,11 +9,9 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.10"
-      - key: CORS_ORIGINS
-        sync: false
 
   - type: web
-    name: attention-metrics-web
+    name: app-rank-monitor-web  # ഇവിടെയും പേര് മാറ്റുക
     runtime: node
     plan: free
     rootDir: frontend
@@ -22,5 +20,3 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: NEXT_PUBLIC_API_URL
-        sync: false
