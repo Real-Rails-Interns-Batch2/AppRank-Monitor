@@ -1,0 +1,18 @@
+services:
+  # Backend Service (FastAPI/Python)
+  - type: web
+    name: app-rank-tracker-api
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port 10000"
+    rootDir: backend
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+
+  # Frontend Service (Next.js/Static)
+  - type: static
+    name: app-rank-tracker-ui
+    buildCommand: "npm install && npm run build"
+    publishPath: out # Next.js ആണെങ്കിൽ 'out', അല്ലെങ്കിൽ 'dist' എന്ന് മാറ്റി നൽകുക
+    rootDir: frontend
