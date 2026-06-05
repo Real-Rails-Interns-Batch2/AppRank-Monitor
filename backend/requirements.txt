@@ -3,6 +3,7 @@ uvicorn
 gunicorn
 pandas
 numpy
+duckdb
 requests
 pydantic
 pydantic-settings
