@@ -1,18 +1,26 @@
 services:
-  # Backend Service (FastAPI/Python)
   - type: web
-    name: app-rank-tracker-api
+    name: attention-metrics-api
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn main:app --host 0.0.0.0 --port 10000"
+    plan: free
     rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: "3.10"
+      - key: CORS_ORIGINS
+        sync: false
 
-  # Frontend Service (Next.js/Static)
-  - type: static
-    name: app-rank-tracker-ui
-    buildCommand: "npm install && npm run build"
-    publishPath: out # Next.js ആണെങ്കിൽ 'out', അല്ലെങ്കിൽ 'dist' എന്ന് മാറ്റി നൽകുക
+  - type: web
+    name: attention-metrics-web
+    runtime: node
+    plan: free
     rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
