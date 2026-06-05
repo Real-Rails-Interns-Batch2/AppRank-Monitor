@@ -22,21 +22,24 @@ async def get_rankings():
     try:
         if not os.path.exists(CSV_FILE_PATH):
             return []
-            
-        # CSV വായിക്കുന്നു
+        
+        # CSV-യിൽ നിന്ന് ഡാറ്റ എടുക്കുന്നു
         query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}')"
         df = conn.execute(query).df()
         
         rankings = []
         for _, row in df.iterrows():
-            # JSON-ലേക്ക് മാറ്റാനുള്ള ലോജിക്
-            history_str = str(row["history"])
-            reviews_str = str(row["recent_reviews"])
-            
-            # String ആയ [10,12] നെ [10, 12] എന്ന ലിസ്റ്റ് ആക്കുന്നു
-            history_data = json.loads(history_str.replace("'", '"')) if history_str else []
-            reviews_data = json.loads(reviews_str.replace("'", '"')) if reviews_str else []
-            
+            # CSV-യിൽ കൊട്ടേഷൻ മാർക്കിനുള്ളിലുള്ള ഡാറ്റയെ ലിസ്റ്റ് ആക്കുന്നു
+            try:
+                history_data = json.loads(row["history"])
+            except:
+                history_data = []
+                
+            try:
+                reviews_data = json.loads(row["recent_reviews"])
+            except:
+                reviews_data = []
+                
             rankings.append({
                 "rank": int(row["rank"]),
                 "name": str(row["name"]),
@@ -49,7 +52,7 @@ async def get_rankings():
             })
         return rankings
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in backend: {e}")
         return []
 
 @app.get("/api/categories")
