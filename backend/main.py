@@ -1,3 +1,4 @@
+import os
 import json
 import duckdb
 import uvicorn
@@ -18,8 +19,8 @@ app.add_middleware(
 # Initialize DuckDB connection
 conn = duckdb.connect()
 
-# CSV ഫയലിന്റെ പാത്ത് നേരിട്ട് നൽകുന്നു
-CSV_FILE_PATH = 'mock_rankings.csv'
+# CSV ഫയലിന്റെ പാത്ത് കൃത്യമായി സെറ്റ് ചെയ്യുന്നു (റൺ ചെയ്യുന്ന ഫോൾഡർ ഏതാണോ അവിടെ നിന്ന് ഫയൽ എടുക്കുന്നു)
+CSV_FILE_PATH = os.path.join(os.getcwd(), 'mock_rankings.csv')
 
 @app.get("/api/rankings")
 async def get_rankings():
