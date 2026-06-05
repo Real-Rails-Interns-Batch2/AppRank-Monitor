@@ -7,47 +7,36 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Enable CORS for the frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials=True,
-    allow_methods=["*"],  
+    allow_origins=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize DuckDB connection
 conn = duckdb.connect()
-
-# CSV പാത്ത് ലോഗ് ചെയ്യുന്നു (പ്രശ്നം എവിടെയാണെന്ന് അറിയാൻ)
-current_dir = os.getcwd()
-CSV_FILE_PATH = os.path.join(current_dir, 'mock_rankings.csv')
-print(f"DEBUG: CSV file path is set to {CSV_FILE_PATH}")
+CSV_FILE_PATH = os.path.join(os.getcwd(), 'mock_rankings.csv')
 
 @app.get("/api/rankings")
 async def get_rankings():
     try:
-        # ഫയൽ ഉണ്ടോ എന്ന് ഉറപ്പുവരുത്തുന്നു
         if not os.path.exists(CSV_FILE_PATH):
-            print(f"ERROR: File not found at {CSV_FILE_PATH}")
             return []
             
-        # CSV ഫയലിൽ നിന്ന് ഡാറ്റ ക്വറി ചെയ്യുന്നു
-        query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}') ORDER BY rank ASC"
+        # CSV വായിക്കുന്നു
+        query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}')"
         df = conn.execute(query).df()
         
         rankings = []
         for _, row in df.iterrows():
-            # JSON ഫീൽഡുകൾ കൈകാര്യം ചെയ്യുന്നു
-            history_data = row["history"]
-            reviews_data = row["recent_reviews"]
+            # JSON-ലേക്ക് മാറ്റാനുള്ള ലോജിക്
+            history_str = str(row["history"])
+            reviews_str = str(row["recent_reviews"])
             
-            # string ആണെങ്കിൽ മാത്രം parse ചെയ്യുക
-            if isinstance(history_data, str):
-                history_data = json.loads(history_data)
-            if isinstance(reviews_data, str):
-                reviews_data = json.loads(reviews_data)
-                
+            # String ആയ [10,12] നെ [10, 12] എന്ന ലിസ്റ്റ് ആക്കുന്നു
+            history_data = json.loads(history_str.replace("'", '"')) if history_str else []
+            reviews_data = json.loads(reviews_str.replace("'", '"')) if reviews_str else []
+            
             rankings.append({
                 "rank": int(row["rank"]),
                 "name": str(row["name"]),
@@ -60,7 +49,7 @@ async def get_rankings():
             })
         return rankings
     except Exception as e:
-        print(f"Database error: {e}")
+        print(f"Error: {e}")
         return []
 
 @app.get("/api/categories")
@@ -69,15 +58,9 @@ async def get_categories():
         if not os.path.exists(CSV_FILE_PATH):
             return []
         query = f"SELECT DISTINCT category FROM read_csv_auto('{CSV_FILE_PATH}')"
-        categories = conn.execute(query).df()["category"].tolist()
-        return categories
-    except Exception as e:
-        print(f"Categories error: {e}")
+        return conn.execute(query).df()["category"].tolist()
+    except:
         return []
-
-@app.get("/")
-async def root():
-    return {"status": "FastAPI DuckDB Backend is running successfully"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
