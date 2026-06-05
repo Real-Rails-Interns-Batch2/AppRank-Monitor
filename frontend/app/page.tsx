@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Activity } from 'lucide-react';
 
-// Recharts components loaded dynamically for client-side rendering
 const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
 const Line = dynamic(() => import('recharts').then(mod => mod.Line), { ssr: false });
 const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
@@ -36,7 +35,6 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // നേരിട്ടുള്ള API URL ഉപയോഗിക്കുന്നു
         const rankRes = await fetch('https://app-rank-monitor-api.onrender.com/api/rankings');
         const catRes = await fetch('https://app-rank-monitor-api.onrender.com/api/categories');
         
@@ -45,8 +43,8 @@ export default function Dashboard() {
         const rankingsData = await rankRes.json();
         const categoriesData = await catRes.json();
         
-        setRankings(rankingsData);
-        setCategories(categoriesData);
+        setRankings(Array.isArray(rankingsData) ? rankingsData : []);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
         setError(false);
       } catch (err) {
         console.error("Fetch Error:", err);
@@ -79,7 +77,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Category Tabs */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
         <button onClick={() => setActiveCategory('All')} className={`px-4 py-1.5 text-sm rounded-full ${activeCategory === 'All' ? 'bg-blue-600' : 'bg-slate-800 hover:bg-slate-700'}`}>All Signals</button>
         {categories.map(cat => (
@@ -90,7 +87,7 @@ export default function Dashboard() {
       {loading ? (
         <div className="h-64 flex items-center justify-center">Loading Data...</div>
       ) : error ? (
-        <div className="h-64 flex items-center justify-center text-red-400">Error: Could not connect to API. Please check your configuration.</div>
+        <div className="h-64 flex items-center justify-center text-red-400">Error: Could not connect to API.</div>
       ) : (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <table className="w-full text-left">
@@ -103,13 +100,13 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {filteredRankings.map((app) => (
+              {filteredRankings && Array.isArray(filteredRankings) && filteredRankings.map((app) => (
                 <tr key={app.rank} className="border-b border-slate-800/50 hover:bg-slate-800/40">
                   <td className="p-4">{app.rank}</td>
                   <td className="p-4 font-bold">{app.name}</td>
                   <td className="p-4 h-16 w-32">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={app.history.map((val, i) => ({ val, i }))}>
+                      <LineChart data={app.history && Array.isArray(app.history) ? app.history.map((val, i) => ({ val, i })) : []}>
                         <Line type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={2} dot={false}/>
                       </LineChart>
                     </ResponsiveContainer>
