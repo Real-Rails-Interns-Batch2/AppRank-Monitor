@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# CORS ക്രമീകരണങ്ങൾ (ഫ്രണ്ട്-എൻഡിൽ നിന്ന് ഡാറ്റ വരാൻ ഇത് അത്യാവശ്യമാണ്)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,56 +15,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-conn = duckdb.connect()
-CSV_FILE_PATH = os.path.join(os.getcwd(), 'mock_rankings.csv')
+# ഫയൽ പാത്ത് ശരിയാക്കുന്നു (ഏത് ലൊക്കേഷനിൽ ആയാലും ഇത് ഫയൽ കണ്ടെത്തും)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_FILE_PATH = os.path.join(BASE_DIR, 'mock_rankings.csv')
 
 @app.get("/api/rankings")
 async def get_rankings():
-    try:
-        if not os.path.exists(CSV_FILE_PATH):
-            return []
+    if not os.path.exists(CSV_FILE_PATH):
+        return {"error": f"CSV file not found at {CSV_FILE_PATH}"}
         
-        # CSV-യിൽ നിന്ന് ഡാറ്റ എടുക്കുന്നു
+    try:
+        # DuckDB ഉപയോഗിച്ച് CSV വായിക്കുന്നു
+        conn = duckdb.connect()
         query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}')"
         df = conn.execute(query).df()
         
-        rankings = []
-        for _, row in df.iterrows():
-            # CSV-യിൽ കൊട്ടേഷൻ മാർക്കിനുള്ളിലുള്ള ഡാറ്റയെ ലിസ്റ്റ് ആക്കുന്നു
-            try:
-                history_data = json.loads(row["history"])
-            except:
-                history_data = []
-                
-            try:
-                reviews_data = json.loads(row["recent_reviews"])
-            except:
-                reviews_data = []
-                
-            rankings.append({
-                "rank": int(row["rank"]),
-                "name": str(row["name"]),
-                "category": str(row["category"]),
-                "visibility": int(row["visibility"]),
-                "growth": str(row["growth"]),
-                "history": history_data,
-                "recent_reviews": reviews_data,
-                "sentiment": str(row["sentiment"])
-            })
-        return rankings
+        # ഡാറ്റ ഡിക്ഷണറിയാക്കി മാറ്റുന്നു
+        data = df.to_dict(orient='records')
+        
+        # history, recent_reviews എന്നിവ ലിസ്റ്റുകൾ ആക്കി മാറ്റുന്നു
+        for row in data:
+            if isinstance(row.get('history'), str):
+                row['history'] = json.loads(row['history'].replace("'", '"'))
+            if isinstance(row.get('recent_reviews'), str):
+                row['recent_reviews'] = json.loads(row['recent_reviews'].replace("'", '"'))
+        
+        return data
     except Exception as e:
-        print(f"Error in backend: {e}")
-        return []
-
-@app.get("/api/categories")
-async def get_categories():
-    try:
-        if not os.path.exists(CSV_FILE_PATH):
-            return []
-        query = f"SELECT DISTINCT category FROM read_csv_auto('{CSV_FILE_PATH}')"
-        return conn.execute(query).df()["category"].tolist()
-    except:
-        return []
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
