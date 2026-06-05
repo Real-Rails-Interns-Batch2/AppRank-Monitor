@@ -2,19 +2,15 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  const [rankings, setRankings] = useState([]);
+  // ഇവിടെയാണ് മാറ്റം വരുത്തിയത്
+  const [rankings, setRankings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
-      // API-ൽ നിന്ന് ഡാറ്റ എടുക്കുന്നു
       const rankRes = await fetch('https://app-rank-monitor-api.onrender.com/api/rankings');
       const rankingsData = await rankRes.json();
       
-      // കൺസോളിൽ ഡാറ്റ വരുന്നുണ്ടോ എന്ന് പരിശോധിക്കാൻ
-      console.log("ബാക്കെൻഡിൽ നിന്ന് കിട്ടിയത്:", rankingsData); 
-
-      // ഡാറ്റ അറേയാണോ എന്ന് ഉറപ്പുവരുത്തി സ്റ്റേറ്റിലേക്ക് മാറ്റുന്നു
       setRankings(Array.isArray(rankingsData) ? rankingsData : []);
       setLoading(false);
     } catch (err) {
