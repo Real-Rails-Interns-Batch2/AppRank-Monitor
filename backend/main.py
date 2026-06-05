@@ -1,4 +1,3 @@
-import os
 import json
 import duckdb
 import uvicorn
@@ -19,13 +18,13 @@ app.add_middleware(
 # Initialize DuckDB connection
 conn = duckdb.connect()
 
-# CSV ഫയലിന്റെ പാത്ത് കൃത്യമായി സെറ്റ് ചെയ്യുന്നു
-CSV_FILE_PATH = os.path.join(os.path.dirname(__file__), 'mock_rankings.csv')
+# CSV ഫയലിന്റെ പാത്ത് നേരിട്ട് നൽകുന്നു
+CSV_FILE_PATH = 'mock_rankings.csv'
 
 @app.get("/api/rankings")
 async def get_rankings():
     try:
-        # കൃത്യമായ പാത്ത് ഉപയോഗിച്ച് ക്വറി ചെയ്യുന്നു
+        # CSV ഫയലിൽ നിന്ന് ഡാറ്റ ക്വറി ചെയ്യുന്നു
         query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}') ORDER BY rank ASC"
         df = conn.execute(query).df()
         
