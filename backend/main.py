@@ -19,37 +19,55 @@ app.add_middleware(
 # Initialize DuckDB connection
 conn = duckdb.connect()
 
-# CSV ഫയലിന്റെ പാത്ത് കൃത്യമായി സെറ്റ് ചെയ്യുന്നു (റൺ ചെയ്യുന്ന ഫോൾഡർ ഏതാണോ അവിടെ നിന്ന് ഫയൽ എടുക്കുന്നു)
-CSV_FILE_PATH = os.path.join(os.getcwd(), 'mock_rankings.csv')
+# CSV പാത്ത് ലോഗ് ചെയ്യുന്നു (പ്രശ്നം എവിടെയാണെന്ന് അറിയാൻ)
+current_dir = os.getcwd()
+CSV_FILE_PATH = os.path.join(current_dir, 'mock_rankings.csv')
+print(f"DEBUG: CSV file path is set to {CSV_FILE_PATH}")
 
 @app.get("/api/rankings")
 async def get_rankings():
     try:
+        # ഫയൽ ഉണ്ടോ എന്ന് ഉറപ്പുവരുത്തുന്നു
+        if not os.path.exists(CSV_FILE_PATH):
+            print(f"ERROR: File not found at {CSV_FILE_PATH}")
+            return []
+            
         # CSV ഫയലിൽ നിന്ന് ഡാറ്റ ക്വറി ചെയ്യുന്നു
         query = f"SELECT * FROM read_csv_auto('{CSV_FILE_PATH}') ORDER BY rank ASC"
         df = conn.execute(query).df()
         
-        # Convert DataFrame to list of dicts
         rankings = []
         for _, row in df.iterrows():
+            # JSON ഫീൽഡുകൾ കൈകാര്യം ചെയ്യുന്നു
+            history_data = row["history"]
+            reviews_data = row["recent_reviews"]
+            
+            # string ആണെങ്കിൽ മാത്രം parse ചെയ്യുക
+            if isinstance(history_data, str):
+                history_data = json.loads(history_data)
+            if isinstance(reviews_data, str):
+                reviews_data = json.loads(reviews_data)
+                
             rankings.append({
                 "rank": int(row["rank"]),
                 "name": str(row["name"]),
                 "category": str(row["category"]),
                 "visibility": int(row["visibility"]),
                 "growth": str(row["growth"]),
-                "history": json.loads(str(row["history"])),
-                "recent_reviews": json.loads(str(row["recent_reviews"])),
+                "history": history_data,
+                "recent_reviews": reviews_data,
                 "sentiment": str(row["sentiment"])
             })
         return rankings
     except Exception as e:
         print(f"Database error: {e}")
-        return {"error": f"Database error: {e}"}
+        return []
 
 @app.get("/api/categories")
 async def get_categories():
     try:
+        if not os.path.exists(CSV_FILE_PATH):
+            return []
         query = f"SELECT DISTINCT category FROM read_csv_auto('{CSV_FILE_PATH}')"
         categories = conn.execute(query).df()["category"].tolist()
         return categories
