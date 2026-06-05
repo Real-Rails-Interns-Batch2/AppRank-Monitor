@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: app-rank-monitor-api  # ഇവിടെ പേര് മാറ്റുക
+    name: app-rank-monitor-api
     runtime: python
     plan: free
     rootDir: backend
@@ -11,7 +11,7 @@ services:
         value: "3.10"
 
   - type: web
-    name: app-rank-monitor-web  # ഇവിടെയും പേര് മാറ്റുക
+    name: app-rank-monitor-web
     runtime: node
     plan: free
     rootDir: frontend
@@ -20,3 +20,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
