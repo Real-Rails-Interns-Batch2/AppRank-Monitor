@@ -2,12 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { TrendingUp, TrendingDown, Star, MessageSquareQuote, Search, Activity, Info, X } from 'lucide-react';
+import { Activity, Info } from 'lucide-react';
 
+// Recharts components loaded dynamically for client-side rendering
 const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
 const Line = dynamic(() => import('recharts').then(mod => mod.Line), { ssr: false });
 const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
-const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
 
 interface Review {
   user: string;
@@ -38,7 +38,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Render-ൽ സെറ്റ് ചെയ്ത API URL ഉപയോഗിക്കുന്നു
+        // API Base URL from Environment Variables
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
         
         const [rankRes, catRes] = await Promise.all([
@@ -46,18 +46,22 @@ export default function Dashboard() {
           fetch(`${API_BASE}/api/categories`)
         ]);
         
-        if (!rankRes.ok) throw new Error('API Sync Failed');
+        if (!rankRes.ok || !catRes.ok) throw new Error('API Sync Failed');
         
-        setRankings(await rankRes.json());
-        setCategories(await catRes.json());
+        const rankingsData = await rankRes.json();
+        const categoriesData = await catRes.json();
+        
+        setRankings(rankingsData);
+        setCategories(categoriesData);
         setError(false);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch Error:", err);
         setError(true);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
     const interval = setInterval(fetchData, 8000);
     return () => clearInterval(interval);
@@ -79,12 +83,9 @@ export default function Dashboard() {
             App Store Ranking Tracker (ID 47)
           </p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="p-2 bg-slate-900 border border-slate-700 rounded-full hover:bg-slate-800 transition-colors text-cyan-400">
-          <Info className="w-5 h-5" />
-        </button>
       </header>
 
-      {/* Custom Category Tabs */}
+      {/* Category Tabs */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
         <button onClick={() => setActiveCategory('All')} className={`px-4 py-1.5 text-sm rounded-full ${activeCategory === 'All' ? 'bg-blue-600' : 'bg-slate-800 hover:bg-slate-700'}`}>All Signals</button>
         {categories.map(cat => (
@@ -93,9 +94,9 @@ export default function Dashboard() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">Loading...</div>
+        <div className="h-64 flex items-center justify-center">Loading Data...</div>
       ) : error ? (
-        <div className="h-64 flex items-center justify-center text-red-400">Error connecting to API. Check your Environment Variables.</div>
+        <div className="h-64 flex items-center justify-center text-red-400">Error: Could not connect to API. Please check your configuration.</div>
       ) : (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <table className="w-full text-left">
@@ -109,10 +110,16 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {filteredRankings.map((app) => (
-                <tr key={app.rank} className="border-b border-slate-800/50 hover:bg-slate-800/40 cursor-pointer" onClick={() => setSelectedApp(app)}>
+                <tr key={app.rank} className="border-b border-slate-800/50 hover:bg-slate-800/40">
                   <td className="p-4">{app.rank}</td>
                   <td className="p-4 font-bold">{app.name}</td>
-                  <td className="p-4 h-16"><ResponsiveContainer width="100%" height="100%"><LineChart data={app.history.map((val, i) => ({ val, i }))}><Line type="monotone" dataKey="val" stroke="#3b82f6" dot={false}/></LineChart></ResponsiveContainer></td>
+                  <td className="p-4 h-16 w-32">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={app.history.map((val, i) => ({ val, i }))}>
+                        <Line type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={2} dot={false}/>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </td>
                   <td className="p-4">{app.growth}</td>
                 </tr>
               ))}
