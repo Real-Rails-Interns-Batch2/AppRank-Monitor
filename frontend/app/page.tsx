@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Activity, Info } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 // Recharts components loaded dynamically for client-side rendering
 const LineChart = dynamic(() => import('recharts').then(mod => mod.LineChart), { ssr: false });
@@ -32,19 +32,13 @@ export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [selectedApp, setSelectedApp] = useState<AppRanking | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // API Base URL from Environment Variables
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-        
-        const [rankRes, catRes] = await Promise.all([
-          fetch(`${API_BASE}/api/rankings`),
-          fetch(`${API_BASE}/api/categories`)
-        ]);
+        // നേരിട്ടുള്ള API URL ഉപയോഗിക്കുന്നു
+        const rankRes = await fetch('https://app-rank-monitor-api.onrender.com/api/rankings');
+        const catRes = await fetch('https://app-rank-monitor-api.onrender.com/api/categories');
         
         if (!rankRes.ok || !catRes.ok) throw new Error('API Sync Failed');
         
