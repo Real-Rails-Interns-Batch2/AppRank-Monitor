@@ -1,4 +1,4 @@
 rank,name,category,visibility,growth,history,recent_reviews,sentiment
-1,AppOne,Gaming,1000,10%,[10,12,15],[5,8,10],Positive
-2,AppTwo,Productivity,800,5%,[5,6,7],[2,3,4],Neutral
-3,AppThree,Social,1200,15%,[20,25,30],[10,15,20],Positive
+1,AppOne,Gaming,1000,10%,"[10,12,15]","[5,8,10]",Positive
+2,AppTwo,Productivity,800,5%,"[5,6,7]","[2,3,4]",Neutral
+3,AppThree,Social,1200,15%,"[20,25,30]","[10,15,20]",Positive
