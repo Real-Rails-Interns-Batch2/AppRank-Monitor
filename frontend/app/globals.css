@@ -3,75 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  html,
-  body {
-    @apply h-full overflow-hidden antialiased;
-    background-color: #0A0F1D;
-    color: #F1F5F9;
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
   }
 
   * {
-    @apply box-border;
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#0A0F1D] text-[#F1F5F9] antialiased;
   }
 }
 
-/* Glassmorphism */
 .glass {
-  @apply backdrop-blur-md border;
+  @apply backdrop-blur-md border border-gray-800/50;
   background-color: rgba(11, 17, 23, 0.8);
-  border-color: rgba(31, 41, 55, 0.5);
-}
-
-/* Cyan glow on active */
-.glow-active {
-  @apply border;
-  border-color: #38BDF8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1F2937;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #38BDF8;
-}
-
-/* Animations */
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out;
 }
